@@ -6,7 +6,8 @@
 #include "include/hitable.hpp"
 #include "include/sphere.hpp"
 #include "include/hitable_list.hpp"
-
+#include "include/camera.hpp"
+#include <random>
 /*
 观察点位于（0，0，0），屏幕位于（-2，-1，-1）到（2，1，-1），屏幕的宽度为4，高度为2
 屏幕的左下角为（-2，-1，-1），右上
@@ -32,26 +33,46 @@ int main()
 {
     int nx = 200;
     int ny = 100;
+    int ns = 100;
     std::ofstream image_file("images/P3.ppm");
     image_file<<"P3\n"<<nx<<" "<<ny<<"\n255\n";
-
-    Vec3 lower_left_corner(-2.0,-1.0,-1.0);
-    Vec3 horizontal(4.0,0.0,0.0);
-    Vec3 vertical(0.0,2.0,0.0);
-    Vec3 origin(0.0,0.0,0.0);
+    
+    Camera camera(Vec3(0,0,0),Vec3(-2.0,-1.0,-1.0),Vec3(4.0,0.0,0.0),Vec3(0.0,2.0,0.0));
     hitable* list[2];
     list[0] = new sphere(Vec3(0,0,-1),0.5);
     list[1] = new sphere(Vec3(0,-100.5,-1),100);
     hitable* world = new hitable_list(list,2);
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<float> random01(0.0f, 1.0f);
     for(int j = ny-1;j>=0;j--)
     {
         for(int i = 0;i < nx;i++)
         {
-            float u = float(i)/float(nx);
-            float v = float(j)/float(ny);
-            Ray r(origin, lower_left_corner + horizontal * u + vertical * v);//this is the ray from the origin to the pixel
+            /*
+            *@byy-q
+            @brief for each pixel,we doing ns(100) times sampling to get the average color of the pixel
+            so that we can get a better image,otherwise the image will be very noisy
+            */
+            Vec3 col(0,0,0);
+            for(int s = 0;s < ns;s++)
+            {
+                #ifdef POSIX
+                #include <stdlib.h>
+                float u = float(i + std::drand48()/float(nx));
+                float v = float(j + std::drand48())/float(ny);
+                Ray r = camera.get_ray(u,v);
+                col += color(r,world);
+                #endif
 
-            Vec3 col = color(r,world);
+                #ifdef _WIN32
+                    float u = float(i + random01(rng))/float(nx);
+                    float v = float(j + random01(rng))/float(ny);
+                    Ray r = camera.get_ray(u,v);
+                    col += color(r,world);
+                #endif
+            }
+
+            col /= float(ns);
             int ir = int(255.99 * col[0]);
             int ig = int(255.99 * col[1]);
             int ib = int(255.99 * col[2]);
