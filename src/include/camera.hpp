@@ -16,7 +16,7 @@ class Camera
         :origin(lookPoint),lower_left_corner(lower_left_corner),horizontal(horizontal),vertical(vertical){}
         Ray get_ray(float u,float v)const
         {
-            return Ray(origin,lower_left_corner + u*horizontal+v*vertical - origin);
+            return Ray(origin,lower_left_corner + horizontal*u+vertical*v - origin);
         }
 
     private:
