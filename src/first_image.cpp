@@ -17,12 +17,37 @@
 所有眼睛观察到的东西，根据光路可逆原理，可以看作是从我们眼睛发出的光线，光线从眼睛出发，经过屏幕，最终到达物体表面
 */
 
+std::mt19937 rng(std::random_device{}());
+std::uniform_real_distribution<float> random01(0.0f, 1.0f);
+
+Vec3 random_in_unit_sphere()
+{
+    #ifdef POSIX
+    #include <stdlib.h>
+    Vec3 p;
+    do
+    {
+        p = Vec3(drand48(),drand48(),drand48())*2.0 - Vec3(1,1,1);
+    }while(dot(p,p) >= 1.0);
+    #endif
+
+    #ifdef _WIN32
+    Vec3 p;
+    do{
+        p = Vec3(random01(rng),random01(rng),random01(rng))*2.0 - Vec3(1,1,1);
+    }while(dot(p,p) >= 1.0);
+    #endif
+    return p;
+}
+
+
 Vec3 color(const Ray& r,hitable* world)
 {
     hit_record record;
     if(world->hit(r,0.0,std::numeric_limits<float>::max(),record))
     {
-        return Vec3(record.normal.x() + 1,record.normal.y()+1,record.normal.z()+1)/2;
+        Vec3 target = record.p + record.normal + random_in_unit_sphere();
+        return color(Ray(record.p,target - record.p),world)*0.5;
     }
     Vec3 unit_direction = make_unit_vector(r.direction());
     float t = 0.5 * (unit_direction.y() + 1.0);
@@ -42,8 +67,6 @@ int main()
     list[0] = new sphere(Vec3(0,0,-1),0.5);
     list[1] = new sphere(Vec3(0,-100.5,-1),100);
     hitable* world = new hitable_list(list,2);
-    std::mt19937 rng(std::random_device{}());
-    std::uniform_real_distribution<float> random01(0.0f, 1.0f);
     for(int j = ny-1;j>=0;j--)
     {
         for(int i = 0;i < nx;i++)
