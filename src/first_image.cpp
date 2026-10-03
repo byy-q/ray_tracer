@@ -96,6 +96,7 @@ int main()
             }
 
             col /= float(ns);
+            col = Vec3(sqrt(col[0]),sqrt(col[1]),sqrt(col[2]));//doing gamma correction,otherwise the image will be very dark
             int ir = int(255.99 * col[0]);
             int ig = int(255.99 * col[1]);
             int ib = int(255.99 * col[2]);
