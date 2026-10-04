@@ -1,5 +1,23 @@
-output/first_image.exe: src/first_image.cpp src/include/Vec3.hpp src/include/Ray.hpp output/Vec3.o 
-	g++ -o output/first_image.exe src/first_image.cpp src/include/Vec3.hpp src/include/Ray.hpp 
-output/Vec3.o 
-	g++ -c src/imple/Vec3.cpp -o output/Vec3.o
-	
+CXX := g++
+CXXFLAGS := -std=c++11
+
+TARGET := output/first_image.exe
+SOURCES := \
+	src/first_image.cpp \
+	src/imple/Vec3.cpp \
+	src/imple/sphere.cpp \
+	src/imple/hitbale_list.cpp
+HEADERS := \
+	src/include/Vec3.hpp \
+	src/include/Ray.hpp \
+	src/include/hitable.hpp \
+	src/include/sphere.hpp \
+	src/include/hitable_list.hpp \
+	src/include/camera.hpp \
+	src/include/material.hpp
+
+.PHONY: all
+all: $(TARGET)
+
+$(TARGET): $(SOURCES) $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET)
