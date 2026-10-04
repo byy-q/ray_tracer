@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++11
+CXXFLAGS := -std=c++20
 
 TARGET := output/first_image.exe
 SOURCES := \
