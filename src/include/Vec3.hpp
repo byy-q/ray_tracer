@@ -19,14 +19,16 @@ class Vec3
         inline float b()const{return e[2];}
 
         inline const Vec3& operator+()const{return *this;}
-        inline Vec3 operator-(){return Vec3(-e[0],-e[1],-e[2]);}
+        inline Vec3 operator-() const{return Vec3(-e[0],-e[1],-e[2]);}
         inline float operator[](int i)const{return e[i];}
         inline float& operator[](int i){return e[i];}
 
         Vec3& operator+=(const Vec3& v2);
         Vec3& operator-=(const Vec3& v2);
         Vec3& operator*=(const Vec3& v2);//this is for color,not for location
+        Vec3 operator*(const Vec3& v2){Vec3 result = *this;result*=v2;return result;}
         Vec3& operator/=(const Vec3& v2);//same as up
+        Vec3 operator/(const Vec3& v2){Vec3 result = *this;result/=v2;return result;}
         Vec3& operator*=(const float& t);
         Vec3& operator/=(const float& t);
         Vec3 operator*(const float& t)const;

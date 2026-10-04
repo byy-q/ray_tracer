@@ -4,11 +4,13 @@
 #include "Ray.hpp"
 #include "Vec3.hpp"
 
+class material;
 typedef struct
 {
     float t;//the hit point is at r.origin() + t * r.direction()
     Vec3 p;//the hit point
     Vec3 normal;//the normal vector of the surface at the hit point
+    material* mat_ptr;//the material of the object that is hit
 } hit_record;
 
 
