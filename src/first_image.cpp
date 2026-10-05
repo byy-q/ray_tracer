@@ -50,9 +50,10 @@ Vec3 color(const Ray& r,hitable* world,int depth)
         Ray scattered;
         Vec3 attenuation;
         if(depth < 50 && record.mat_ptr->scatter(r,record,attenuation,scattered))
-            return attenuation * color(scattered,world,depth+1);
-        return Vec3(0,0,0);
+            return attenuation * color(scattered,world,depth+1);//漫射的颜色会减弱
+        return Vec3(0,0,0);//漫射太多次或者材料不发生漫射，颜色就是黑色。
     }
+    //没有看见任何物体，返回背景的颜色
     Vec3 unit_direction = make_unit_vector(r.direction());
     float t = 0.5 * (unit_direction.y() + 1.0);
     return Vec3(1.0,1.0,1.0) * (1.0 - t) + Vec3(0.5,0.7,1.0) * t;
@@ -89,6 +90,38 @@ float schlick(float cosine,float ref_idx)
     return r0 + (1-r0)*pow((1-cosine),5);
 }
 
+hitable* random_scene()
+{
+    int n = 500;
+    hitable** list = new hitable*[n+1];
+    list[0] = new sphere((Vec3(0,-1000,0)),1000,new lambertian((Vec3(0.5,0.5,0.5))));
+    
+    int i = 1;
+    for(int a = -11;a < 11 ;a++)
+    {
+        for(int b = -11;b<11;b++)
+        {
+            float choose_material = random01(rng);
+            Vec3 center = Vec3(a+0.9*random01(rng),0.2,b+0.9*random01(rng));
+            if((center - Vec3(4,0.2,0)).length() > 0.9)
+            {
+                if(choose_material < 0.8)
+                    list[i++] = new sphere(center,0.2,new lambertian(Vec3(random01(rng)*random01(rng),random01(rng)*random01(rng),random01(rng)*random01(rng))));
+                else if(choose_material < 0.95)
+                    list[i++] = new sphere(center,0.2,new metal(Vec3(0.5*(1+random01(rng)),0.5*(1+random01(rng)),0.5*(1+random01(rng))),0.5*random01(rng)));
+                else
+                    list[i++] = new sphere(center,0.2,new dielectric(1.5));
+                }
+        }
+    }
+
+    list[i++] = new sphere(Vec3(0,1,0),1.0,new dielectric(1.5));
+    list[i++] = new sphere(Vec3(-4,1,0),1.0,new lambertian((Vec3(0.4,0.2,0.1))));
+    list[i++] = new sphere(Vec3(4,1,0),1.0,new metal(Vec3(0.7,0.6,0.5),0.0));
+
+    return new hitable_list(list,i);
+}
+
 int main()
 {
     int nx = 200;
@@ -97,13 +130,9 @@ int main()
     std::ofstream image_file("images/P3.ppm");
     image_file<<"P3\n"<<nx<<" "<<ny<<"\n255\n";
     
-    Camera camera(Vec3(0,0,0),Vec3(-2.0,-1.0,-1.0),Vec3(4.0,0.0,0.0),Vec3(0.0,2.0,0.0));
-    hitable* list[4];
-    list[0] = new sphere(Vec3(0,0,-1),0.5,new lambertian(Vec3(0.8,0.3,0.3)));
-    list[1] = new sphere(Vec3(0,-100.5,-1),100,new lambertian(Vec3(0.8,0.8,0.0)));
-    list[2] = new sphere(Vec3(1,0,-1),0.5,new metal(Vec3(0.8,0.6,0.2),0.2));
-    list[3] = new sphere(Vec3(-1,0,-1),0.5,new dielectric(1.5));
-    hitable* world = new hitable_list(list,4);
+    Camera camera(Vec3(-2,1,1),Vec3(0,0,-1),Vec3(0.1,1,-0.1),45,static_cast<float>(nx)/static_cast<float>(ny));
+    
+    hitable* world = random_scene();
     for(int j = ny-1;j>=0;j--)
     {
         for(int i = 0;i < nx;i++)

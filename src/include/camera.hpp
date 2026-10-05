@@ -13,7 +13,7 @@ class Camera
 {
     public:
         Camera(){}
-        Camera(const float& vfov,const float& aspect);
+        Camera(const Vec3& look_from,const Vec3& look_at,const Vec3& view_up,const float& vfov,const float& aspect);
         Ray get_ray(float u,float v)const
         {
             return Ray(origin,lower_left_corner + horizontal*u+vertical*v - origin);
@@ -26,17 +26,22 @@ class Camera
         Vec3 vertical;//the vertival vector of the screen
 };
 
-Camera :: Camera(const float& vfov,const float& aspect)
+Camera :: Camera(const Vec3& look_from,const Vec3& look_at,const Vec3& view_up,const float& vfov,const float& aspect)
 {
     float pi = std::numbers::pi;
     float theta = vfov * pi/180;
     float half_height = tan(theta);
     float half_width = aspect * half_height;
-    
-    origin = Vec3(0.0,0.0,0.0);
-    lower_left_corner = Vec3(-half_width,-half_height,-1.0);
-    horizontal = Vec3(2*half_width,0.0,0.0); 
-    vertical = Vec3(0.0,2*half_height,0.0);
+    Vec3 u,v,w;
+
+    w = make_unit_vector(look_from - look_at);
+    u = make_unit_vector(cross_product(view_up,w));
+    v = cross_product(w,u);
+
+    origin = look_from;
+    lower_left_corner = origin - u * half_width - v * half_height - w;
+    horizontal = u*2*half_width;
+    vertical = v*2*half_height;
 }
 
 
